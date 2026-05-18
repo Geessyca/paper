@@ -1,0 +1,8 @@
+gymnasium
+matplotlib
+numpy
+torch
+PyYAML
+scikit-optimize
+deap
+pandas

@@ -1,0 +1,70 @@
+env:
+  id: LunarLander-v3
+  render_mode: rgb_array
+  max_steps: 1000
+
+reproducibility:
+  seed: 42
+  deterministic: true
+
+train:
+  num_episodes: 500
+  replay_buffer_size: 10000
+  target_update: 10
+  gamma: 0.99
+  eps_start: 1.0
+  eps_end: 0.05
+  eps_decay: 1000
+  optimizer: Adam
+  reward_clipping: null
+  batch_size: 64
+  learning_rate: 0.0003
+  layers: [64, 64]
+  activation: ReLU
+  convergence:
+    window: 100
+    threshold: 200
+
+logging:
+  output_dir: runs
+
+baselines:
+  - name: baseline1
+    batch_size: 64
+    layers: [64, 64]
+    activation: ReLU
+    learning_rate: 0.0003
+  - name: baseline2
+    batch_size: 64
+    layers: [128, 128]
+    activation: ReLU
+    learning_rate: 0.001
+  - name: baseline3
+    batch_size: 32
+    layers: [128, 128]
+    activation: ReLU
+    learning_rate: 0.001
+
+search:
+  evaluation_episodes: 50
+  ga:
+    population_size: 10
+    generations: 5
+    cxpb: 0.2
+    mutpb: 0.8
+  bayesian:
+    calls: 15
+    random_starts: 5
+    acq_func: EI
+
+search_space:
+  batch_size: [32, 64, 128]
+  layers:
+    min_layers: 1
+    max_layers: 5
+    min_units: 32
+    max_units: 256
+  activation: [ReLU, Sigmoid, Softmax]
+  learning_rate:
+    min: 0.0001
+    max: 0.01
