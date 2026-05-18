@@ -203,11 +203,17 @@ class DQNAgent:
             state, _ = self.env.reset(seed=self.config["reproducibility"]["seed"] + i_episode)
             state = torch.tensor([state], device=self.device, dtype=torch.float32)
 
+            log_message(
+                self.log_path,
+                f"Episode start: episode={i_episode} method={self.method_name}",
+            )
+
             total_reward = 0.0
             total_loss = 0.0
             loss_count = 0
             steps = 0
             done = False
+            eps_value = self.policy.start
 
             while not done:
                 policy_out = self.policy.select_action(
@@ -262,6 +268,20 @@ class DQNAgent:
                     "epsilon": eps_value,
                     "episode_time_sec": episode_time,
                 }
+            )
+
+            log_message(
+                self.log_path,
+                "Episode end: episode={episode} reward={reward:.4f} moving_avg={moving_avg:.4f} "
+                "loss={loss:.6f} epsilon={epsilon:.6f} steps={steps} episode_time_sec={episode_time:.2f}".format(
+                    episode=i_episode,
+                    reward=total_reward,
+                    moving_avg=moving_avg,
+                    loss=avg_loss,
+                    epsilon=eps_value,
+                    steps=steps,
+                    episode_time=episode_time,
+                ),
             )
 
             if i_episode % target_update == 0:
