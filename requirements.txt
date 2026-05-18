@@ -6,3 +6,5 @@ PyYAML
 scikit-optimize
 deap
 pandas
+gymnasium[box2d]
+swig

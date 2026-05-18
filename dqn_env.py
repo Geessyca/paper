@@ -23,6 +23,14 @@ def ensure_dir(path: str) -> None:
     os.makedirs(path, exist_ok=True)
 
 
+def log_message(log_path: str, message: str) -> None:
+    timestamp = datetime.utcnow().isoformat()
+    line = f"[{timestamp}] {message}"
+    print(line)
+    with open(log_path, "a", encoding="utf-8") as f:
+        f.write(line + "\n")
+
+
 def set_global_seed(seed: int, deterministic: bool) -> None:
     random.seed(seed)
     np.random.seed(seed)
@@ -122,6 +130,7 @@ class DQNAgent:
         self.method_name = method_name
         ensure_dir(run_dir)
         ensure_dir(os.path.join(run_dir, "plots"))
+        self.log_path = os.path.join(run_dir, "execution.log")
 
         seed = config["reproducibility"]["seed"]
         deterministic = config["reproducibility"]["deterministic"]
@@ -173,6 +182,11 @@ class DQNAgent:
         gamma = train_cfg["gamma"]
         target_update = train_cfg["target_update"]
         reward_clip = train_cfg["reward_clipping"]
+
+        log_message(
+            self.log_path,
+            f"Start training: method={self.method_name} episodes={num_episodes}",
+        )
 
         episode_metrics: List[Dict[str, Any]] = []
         rewards: List[float] = []
@@ -309,4 +323,8 @@ class DQNAgent:
         self.env.close()
 
         summary["fitness"] = fitness
+        log_message(
+            self.log_path,
+            f"End training: method={self.method_name} fitness={fitness:.4f} total_time_sec={total_time:.2f}",
+        )
         return summary

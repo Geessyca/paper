@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 
 from bayesian_optimizer import BayesianOptimizer
 from config import load_config
-from dqn_env import DQNAgent, ensure_dir
+from dqn_env import DQNAgent, ensure_dir, log_message
 from genetic_algorithm import GeneticOptimizer
 
 
@@ -49,6 +49,8 @@ def main(config: Dict[str, Any] = None) -> None:
     config = config or load_config("config/default.yaml")
     output_dir = config["logging"]["output_dir"]
     ensure_dir(output_dir)
+    log_path = os.path.join(output_dir, "execution.log")
+    log_message(log_path, "Start experiment run")
 
     run_dirs: List[str] = []
     labels: List[str] = []
@@ -58,24 +60,34 @@ def main(config: Dict[str, Any] = None) -> None:
         run_dir = os.path.join(output_dir, method)
         ensure_dir(run_dir)
         hyperparams = build_hyperparams(config, baseline)
+        log_message(log_path, f"Start baseline: {method}")
         agent = DQNAgent(config, run_dir, method, hyperparams)
         agent.train()
+        log_message(log_path, f"End baseline: {method}")
         run_dirs.append(run_dir)
         labels.append(method)
 
     ga_optimizer = GeneticOptimizer(config, output_dir)
+    log_message(log_path, "Start GA optimization")
     ga_params, ga_fitness = ga_optimizer.optimize()
+    log_message(log_path, "End GA optimization")
     ga_run_dir = os.path.join(output_dir, "ga_best")
+    log_message(log_path, "Start GA best training")
     ga_agent = DQNAgent(config, ga_run_dir, "ga", ga_params)
     ga_agent.train()
+    log_message(log_path, "End GA best training")
     run_dirs.append(ga_run_dir)
     labels.append("ga")
 
     bayes_optimizer = BayesianOptimizer(config, output_dir)
+    log_message(log_path, "Start Bayesian optimization")
     bayes_params, bayes_fitness = bayes_optimizer.optimize()
+    log_message(log_path, "End Bayesian optimization")
     bayes_run_dir = os.path.join(output_dir, "bayesian_best")
+    log_message(log_path, "Start Bayesian best training")
     bayes_agent = DQNAgent(config, bayes_run_dir, "bayesian", bayes_params)
     bayes_agent.train()
+    log_message(log_path, "End Bayesian best training")
     run_dirs.append(bayes_run_dir)
     labels.append("bayesian")
 
@@ -84,6 +96,7 @@ def main(config: Dict[str, Any] = None) -> None:
 
     print(f"GA best fitness: {ga_fitness}")
     print(f"Bayesian best fitness: {bayes_fitness}")
+    log_message(log_path, "End experiment run")
 
 
 if __name__ == "__main__":
