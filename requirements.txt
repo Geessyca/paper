@@ -3,7 +3,6 @@ matplotlib
 numpy
 torch
 PyYAML
-scikit-optimize
 deap
 pandas
 gymnasium[box2d]

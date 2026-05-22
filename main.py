@@ -2,8 +2,6 @@ import os
 from typing import Any, Dict, List
 
 import matplotlib.pyplot as plt
-
-from bayesian_optimizer import BayesianOptimizer
 from config import load_config
 from dqn_env import DQNAgent, ensure_dir, log_message
 from genetic_algorithm import GeneticOptimizer
@@ -78,24 +76,11 @@ def main(config: Dict[str, Any] = None) -> None:
     log_message(log_path, "End GA best training")
     run_dirs.append(ga_run_dir)
     labels.append("ga")
-
-    bayes_optimizer = BayesianOptimizer(config, output_dir)
-    log_message(log_path, "Start Bayesian optimization")
-    bayes_params, bayes_fitness = bayes_optimizer.optimize()
-    log_message(log_path, "End Bayesian optimization")
-    bayes_run_dir = os.path.join(output_dir, "bayesian_best")
-    log_message(log_path, "Start Bayesian best training")
-    bayes_agent = DQNAgent(config, bayes_run_dir, "bayesian", bayes_params)
-    bayes_agent.train()
-    log_message(log_path, "End Bayesian best training")
-    run_dirs.append(bayes_run_dir)
-    labels.append("bayesian")
-
+    
     comparison_path = os.path.join(output_dir, "comparison.png")
     plot_comparison(run_dirs, labels, comparison_path)
 
     print(f"GA best fitness: {ga_fitness}")
-    print(f"Bayesian best fitness: {bayes_fitness}")
     log_message(log_path, "End experiment run")
 
 

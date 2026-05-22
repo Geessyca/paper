@@ -1,6 +1,6 @@
 # DQN LunarLander Experiments
 
-This project runs DQN baselines plus GA and Bayesian (skopt) hyperparameter search using a YAML config. It logs metrics, summaries, and plots for reproducible experiments.
+This project runs DQN baselines plus GA hyperparameter search using a YAML config. It logs metrics, summaries, and plots for reproducible experiments.
 
 ## Setup
 
@@ -23,7 +23,7 @@ Key areas:
 
 ## Example Commands
 
-Run all baselines + GA + Bayesian + comparison plot:
+Run all baselines + GA + comparison plot:
 
 ```bash
 python main.py
@@ -64,16 +64,6 @@ runs/
     run_summary.json
     plots/
       ...
-  bayesian/
-    bayesian_summary.json
-    trial_000/
-    trial_001/
-    ...
-  bayesian_best/
-    episode_metrics.csv
-    run_summary.json
-    plots/
-      ...
   comparison.png
 ```
 
@@ -92,3 +82,17 @@ Global summary:
 - time to convergence (if reached)
 - episodes to convergence
 - fitness
+
+## Statistical Evaluation
+
+Generate statistical summaries from run logs:
+
+```bash
+python evaluate_stats.py --runs-dir runs
+```
+
+Optional CSV output:
+
+```bash
+python evaluate_stats.py --runs-dir runs --format csv --output stats_summary.csv
+```

@@ -52,10 +52,6 @@ search:
     generations: 5
     cxpb: 0.2
     mutpb: 0.8
-  bayesian:
-    calls: 15
-    random_starts: 5
-    acq_func: EI
 
 search_space:
   batch_size: [32, 64, 128]
