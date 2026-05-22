@@ -25,7 +25,7 @@ def run_colab() -> None:
     drive_root = mount_drive()
     config = load_config("config/default.yaml")
     if drive_root:
-        backup_dir = os.path.join(drive_root, "paper", config["logging"]["output_dir"])
+        backup_dir = os.path.join(drive_root, "paper")
         config["logging"]["backup_dir"] = backup_dir
         ensure_dir(backup_dir)
         write_drive_probe(backup_dir)
