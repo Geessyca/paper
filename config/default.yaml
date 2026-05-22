@@ -27,6 +27,10 @@ train:
 
 logging:
   output_dir: runs
+  backup_dir: null
+
+parallel:
+  baselines_workers: 3
 
 baselines:
   - name: baseline1

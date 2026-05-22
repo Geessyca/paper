@@ -1,10 +1,41 @@
+import multiprocessing
 import os
-from typing import Any, Dict, List
+import shutil
+from typing import Any, Dict, List, Tuple
 
 import matplotlib.pyplot as plt
 from config import load_config
 from dqn_env import DQNAgent, ensure_dir, log_message
 from genetic_algorithm import GeneticOptimizer
+
+
+def run_baseline_worker(args: Tuple[Dict[str, Any], str, Dict[str, Any]]) -> Tuple[str, str]:
+    config, output_dir, baseline = args
+    method = baseline["name"]
+    run_dir = os.path.join(output_dir, method)
+    ensure_dir(run_dir)
+    hyperparams = build_hyperparams(config, baseline)
+    agent = DQNAgent(config, run_dir, method, hyperparams)
+    agent.train()
+    return run_dir, method
+
+
+def resolve_worker_count(config: Dict[str, Any]) -> int:
+    parallel_cfg = config.get("parallel", {})
+    workers = int(parallel_cfg.get("baselines_workers", 1) or 1)
+    if workers <= 0:
+        cpu_count = os.cpu_count() or 1
+        workers = max(1, cpu_count - 1)
+    return workers
+
+
+def backup_outputs(config: Dict[str, Any], output_dir: str, log_path: str) -> None:
+    backup_dir = config.get("logging", {}).get("backup_dir")
+    if not backup_dir:
+        return
+    ensure_dir(backup_dir)
+    shutil.copytree(output_dir, backup_dir, dirs_exist_ok=True)
+    log_message(log_path, f"Backup saved to: {backup_dir}")
 
 
 def plot_comparison(run_dirs: List[str], labels: List[str], output_path: str) -> None:
@@ -53,17 +84,31 @@ def main(config: Dict[str, Any] = None) -> None:
     run_dirs: List[str] = []
     labels: List[str] = []
 
-    for baseline in config["baselines"]:
-        method = baseline["name"]
-        run_dir = os.path.join(output_dir, method)
-        ensure_dir(run_dir)
-        hyperparams = build_hyperparams(config, baseline)
-        log_message(log_path, f"Start baseline: {method}")
-        agent = DQNAgent(config, run_dir, method, hyperparams)
-        agent.train()
-        log_message(log_path, f"End baseline: {method}")
-        run_dirs.append(run_dir)
-        labels.append(method)
+    baselines = config["baselines"]
+    workers = resolve_worker_count(config)
+    if workers > 1 and len(baselines) > 1:
+        log_message(log_path, f"Start baselines in parallel: workers={workers}")
+        ctx = multiprocessing.get_context("spawn")
+        with ctx.Pool(processes=workers) as pool:
+            for run_dir, method in pool.imap(
+                run_baseline_worker,
+                [(config, output_dir, baseline) for baseline in baselines],
+            ):
+                run_dirs.append(run_dir)
+                labels.append(method)
+                log_message(log_path, f"End baseline: {method}")
+    else:
+        for baseline in baselines:
+            method = baseline["name"]
+            run_dir = os.path.join(output_dir, method)
+            ensure_dir(run_dir)
+            hyperparams = build_hyperparams(config, baseline)
+            log_message(log_path, f"Start baseline: {method}")
+            agent = DQNAgent(config, run_dir, method, hyperparams)
+            agent.train()
+            log_message(log_path, f"End baseline: {method}")
+            run_dirs.append(run_dir)
+            labels.append(method)
 
     ga_optimizer = GeneticOptimizer(config, output_dir)
     log_message(log_path, "Start GA optimization")
@@ -81,6 +126,7 @@ def main(config: Dict[str, Any] = None) -> None:
     plot_comparison(run_dirs, labels, comparison_path)
 
     print(f"GA best fitness: {ga_fitness}")
+    backup_outputs(config, output_dir, log_path)
     log_message(log_path, "End experiment run")
 
 

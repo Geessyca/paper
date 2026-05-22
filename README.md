@@ -20,6 +20,8 @@ Key areas:
 - Fixed DQN settings are under `train`
 - Search space is under `search_space`
 - Output directory is under `logging.output_dir`
+- Parallelism is under `parallel.baselines_workers`
+- Backup directory is under `logging.backup_dir`
 
 ## Example Commands
 
@@ -29,7 +31,7 @@ Run all baselines + GA + comparison plot:
 python main.py
 ```
 
-Run in Colab (mounts Drive and writes outputs there):
+Run in Colab (mounts Drive and backs up outputs there):
 
 ```bash
 python mainGoogle.py
