@@ -29,9 +29,6 @@ logging:
   output_dir: runs
   backup_dir: null
 
-parallel:
-  baselines_workers: 3
-
 baselines:
   - name: baseline1
     batch_size: 64
